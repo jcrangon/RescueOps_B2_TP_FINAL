@@ -93,3 +93,14 @@ test('T20 - la mission déployée ne partage pas gps/history avec la source', ()
   assert.notEqual(result.mission.gps, m.gps);
   assert.equal(result.mission.droneId, 'DR-07');
 });
+
+// --- Ajout après auto-revue R-01 : batterie du drone non numérique ---
+
+test('T31 - batterie NaN ou absente refusée par RangeError sans mutation', () => {
+  for (const battery of [NaN, undefined]) {
+    const d = createDrone('DR-X', battery);
+    const dBefore = { ...d };
+    assert.throws(() => deployDrone(d, mission()), RangeError, String(battery));
+    assert.deepEqual(d, dBefore);
+  }
+});
