@@ -20,4 +20,17 @@ $card = MissionCard::publicCard($mission);
 checkSame('SOS-204', $card['id'], 'P01 reference publique');
 checkSame('Sur place', $card['statusLabel'], 'P02 libelle correct');
 checkSame('famille@example.test', $mission['contactEmail'], 'P03 entree interne intacte');
-echo 'Resultat PHP : 3 verifications conformes' . PHP_EOL;
+
+// A-07 (RO-09) : carte limitee a id et statusLabel.
+checkSame(['id', 'statusLabel'], array_keys($card), 'P04 A-07 cles exactes id et statusLabel');
+checkSame(false, array_key_exists('contactEmail', $card) || array_key_exists('gps', $card), 'P05 A-07 ni contact ni GPS');
+
+// Les libelles fournis sont conserves.
+$labels = [
+    'planned' => 'Planifiée', 'en_route' => 'En route', 'on_site' => 'Sur place',
+    'returning' => 'Retour en cours', 'closed' => 'Terminée', 'canceled' => 'Annulée',
+];
+foreach ($labels as $status => $label) {
+    checkSame($label, MissionCard::publicCard(['status' => $status] + $mission)['statusLabel'], 'P06 libelle ' . $status);
+}
+echo 'Resultat PHP : toutes les verifications conformes' . PHP_EOL;

@@ -1,4 +1,9 @@
-const KNOWN_STATUSES = ['planned', 'en_route', 'on_site', 'returning', 'closed'];
+// Seules transitions autorisées par advanceMission (RO-06), une étape à la fois.
+const NEXT_STATUS = {
+  en_route: 'on_site',
+  on_site: 'returning',
+  returning: 'closed',
+};
 
 export function createMission({ id, contactEmail, gps, distanceKm, payloadKg, priority }) {
   return {
@@ -14,7 +19,7 @@ export function createMission({ id, contactEmail, gps, distanceKm, payloadKg, pr
 }
 
 export function advanceMission(mission, nextStatus) {
-  if (!KNOWN_STATUSES.includes(nextStatus)) {
+  if (!Object.hasOwn(NEXT_STATUS, mission.status) || NEXT_STATUS[mission.status] !== nextStatus) {
     throw new Error('Mission transition not allowed');
   }
   return {
@@ -25,7 +30,7 @@ export function advanceMission(mission, nextStatus) {
 }
 
 export function cancelMission(mission) {
-  if (mission.status === 'closed' || mission.status === 'canceled') {
+  if (mission.status !== 'planned') {
     throw new Error('Mission cancellation not allowed');
   }
   return {

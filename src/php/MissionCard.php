@@ -12,13 +12,12 @@ final class MissionCard
         'canceled' => 'Annulée',
     ];
 
+    // Carte publique (RO-09) : uniquement id et statusLabel, ni contact ni GPS.
     public static function publicCard(array $mission): array
     {
         return [
             'id' => $mission['id'],
             'statusLabel' => self::LABELS[$mission['status']],
-            'contactEmail' => $mission['contactEmail'],
-            'gps' => $mission['gps'],
         ];
     }
 }
