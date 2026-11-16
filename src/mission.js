@@ -1,4 +1,11 @@
-const KNOWN_STATUSES = ['planned', 'en_route', 'on_site', 'returning', 'closed'];
+// RO-06 : seule étape suivante autorisée pour advanceMission.
+// planned -> en_route est volontairement ABSENT : seul deployDrone l'effectue (RO-03).
+// closed et canceled sont terminaux (aucune entrée).
+const NEXT_STATUS = Object.freeze({
+  en_route: 'on_site',
+  on_site: 'returning',
+  returning: 'closed',
+});
 
 export function createMission({ id, contactEmail, gps, distanceKm, payloadKg, priority }) {
   return {
@@ -14,22 +21,29 @@ export function createMission({ id, contactEmail, gps, distanceKm, payloadKg, pr
 }
 
 export function advanceMission(mission, nextStatus) {
-  if (!KNOWN_STATUSES.includes(nextStatus)) {
-    throw new Error('Mission transition not allowed');
+  const expected = NEXT_STATUS[mission.status];
+  if (expected === undefined || nextStatus !== expected) {
+    throw new Error(
+      `Mission transition not allowed: ${mission.status} -> ${nextStatus}` +
+        (expected ? ` (expected ${expected})` : '')
+    );
   }
   return {
     ...mission,
+    gps: { ...mission.gps },
     status: nextStatus,
     history: [...mission.history, nextStatus],
   };
 }
 
+// RO-07 : annulation uniquement avant déploiement.
 export function cancelMission(mission) {
-  if (mission.status === 'closed' || mission.status === 'canceled') {
-    throw new Error('Mission cancellation not allowed');
+  if (mission.status !== 'planned') {
+    throw new Error(`Mission cancellation not allowed (status: ${mission.status})`);
   }
   return {
     ...mission,
+    gps: { ...mission.gps },
     status: 'canceled',
     history: [...mission.history, 'canceled'],
   };
