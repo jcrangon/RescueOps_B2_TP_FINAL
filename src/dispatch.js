@@ -5,7 +5,19 @@ export function createDrone(id, batteryPoints, status = 'available') {
 }
 
 export function deployDrone(drone, mission) {
-  const energyUsed = estimateEnergy(mission.distanceKm, mission.payloadKg);
+  if (drone.status !== 'available' || mission.status !== 'planned') {
+    throw new Error('Drone ou mission indisponible');
+  }
+
+  const energyUsed = estimateEnergy(
+    mission.distanceKm,
+    mission.payloadKg
+  );
+
+  if (drone.batteryPoints - energyUsed < 20) {
+    throw new RangeError('Batterie insuffisante');
+  }
+
   return {
     drone: {
       ...drone,
